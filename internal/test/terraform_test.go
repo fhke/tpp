@@ -16,7 +16,7 @@ func TestTerraform__OK(t *testing.T) {
 	goldenPath := "fixtures/single-file/golden.tf"
 	outFile := filepath.Join(t.TempDir(), "out.tf")
 
-	tf, err := tpp.NewTerraformForFile("fixtures/single-file/input.tf")
+	tf, err := tpp.NewTerraformForFile("fixtures/single-file/input.tf", "")
 	require.NoError(t, err, "It should parse file")
 
 	modSrcs, err := tf.GetModuleSources()
