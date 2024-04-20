@@ -17,7 +17,7 @@ func TestTerraforms__OK(t *testing.T) {
 	goldenDir := "fixtures/multi-file/golden"
 	outDir := t.TempDir()
 
-	tf, err := tpp.NewTerraformsForDir("fixtures/multi-file/input")
+	tf, err := tpp.NewTerraformsForDir("fixtures/multi-file/input", "")
 	require.NoError(t, err, "It should parse file")
 
 	modSrcs, err := tf.GetModuleSources()
@@ -32,6 +32,38 @@ func TestTerraforms__OK(t *testing.T) {
 	err = tf.SetModuleSources(map[string]tpp.ModuleSource{
 		"s3::somebucket/a/sdf": {
 			Source: "somebucket/replaced",
+		},
+		"s3::otherbucket/a/sdf": {
+			Source:  "somebucket/replaced/2",
+			Version: ptr.To("1.0.0"),
+		},
+	})
+	require.NoError(t, err, "It should update module sources")
+
+	require.NoError(t, tf.WriteTo(outDir), "It should write data")
+	assertDirsMatch(t, goldenDir, outDir)
+}
+
+func TestTerraforms__Namespaced(t *testing.T) {
+	goldenDir := "fixtures/namespaced/golden"
+	outDir := t.TempDir()
+
+	tf, err := tpp.NewTerraformsForDir("fixtures/namespaced/input", "test")
+	require.NoError(t, err, "It should parse file")
+
+	modSrcs, err := tf.GetModuleSources()
+	require.NoError(t, err, "It should get module sources")
+	assert.Equal(
+		t,
+		sets.New("test::mymodule"),
+		sets.New(modSrcs...),
+		"Module sources should be correct",
+	)
+
+	err = tf.SetModuleSources(map[string]tpp.ModuleSource{
+		"test::mymodule": {
+			Source:  "s3::somebucket/replaced",
+			Version: ptr.To("9.7.0"),
 		},
 		"s3::otherbucket/a/sdf": {
 			Source:  "somebucket/replaced/2",

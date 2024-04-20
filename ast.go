@@ -25,6 +25,10 @@ func (t *Terraform) iterModules(iter func(source string, bl *hclwrite.Block) err
 			return fmt.Errorf("could not parse source for module %q", modName)
 		}
 
+		if !t.isManagedModule(*src) {
+			continue
+		}
+
 		if err := iter(*src, bl); err != nil {
 			return fmt.Errorf("error for module %q: %w", modName, err)
 		}

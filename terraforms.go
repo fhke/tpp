@@ -10,7 +10,7 @@ import (
 
 type Terraforms map[string]*Terraform
 
-func NewTerraformsForDir(dir string) (Terraforms, error) {
+func NewTerraformsForDir(dir, namespace string) (Terraforms, error) {
 	paths, err := getTfFiles(dir)
 	if err != nil {
 		return nil, fmt.Errorf("error listing files: %w", err)
@@ -18,7 +18,7 @@ func NewTerraformsForDir(dir string) (Terraforms, error) {
 
 	tfs := make(Terraforms, len(paths))
 	for _, path := range paths {
-		tf, err := NewTerraformForFile(path)
+		tf, err := NewTerraformForFile(path, namespace)
 		if err != nil {
 			return nil, fmt.Errorf("error creating Terraform from file %q; %w", path, err)
 		}

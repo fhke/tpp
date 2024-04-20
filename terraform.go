@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
@@ -18,7 +19,8 @@ const (
 
 type (
 	Terraform struct {
-		fi *hclwrite.File
+		fi        *hclwrite.File
+		namespace string
 	}
 	ModuleSource struct {
 		Source  string
@@ -26,7 +28,7 @@ type (
 	}
 )
 
-func NewTerraformForFile(path string) (*Terraform, error) {
+func NewTerraformForFile(path, namespace string) (*Terraform, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("error reading file: %w", err)
@@ -37,7 +39,7 @@ func NewTerraformForFile(path string) (*Terraform, error) {
 		return nil, fmt.Errorf("error parsing config: %w", err)
 	}
 
-	return &Terraform{fi: fi}, nil
+	return &Terraform{fi: fi, namespace: namespace}, nil
 }
 
 func (t *Terraform) GetModuleSources() ([]string, error) {
@@ -84,4 +86,11 @@ func (t *Terraform) WriteFile(path string) (int64, error) {
 	}
 	defer fi.Close()
 	return t.Write(fi)
+}
+
+func (t *Terraform) isManagedModule(name string) bool {
+	if t.namespace == "" {
+		return true
+	}
+	return strings.HasPrefix(name, t.namespace+"::")
 }
